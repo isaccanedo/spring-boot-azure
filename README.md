@@ -298,3 +298,150 @@ Por enquanto, podemos precisar colocar em contêiner nosso aplicativo Spring Boo
 
 Já temos um artigo sobre como encaixar um aplicativo Spring Boot, mas estamos prestes a usar outro plugin maven: docker-maven-plugin, para automatizar a dockerização para nós:
  
+```
+<plugin>
+    <groupId>com.spotify</groupId>
+    <artifactId>docker-maven-plugin</artifactId>
+    <version>1.1.0</version>
+    <configuration>
+        <!-- ... -->
+    </configuration>
+</plugin
+```
+
+A última versão pode ser encontrada aqui.
+
+### 5.1. Azure Container Registry
+Primeiro, precisamos de um Container Registry no Azure para carregar nossa imagem docker.
+
+Então, vamos criar um:
+    
+```
+az acr create --admin-enabled --resource-group baeldung-group \
+  --location japanwest --name baeldungadr --sku Basic
+```
+    
+Também precisaremos das informações de autenticação do Container Registry, e isso pode ser consultado usando:
+    
+```
+> az acr credential show --name baeldungadr --query passwords[0]
+{
+  "additionalProperties": {},
+  "name": "password",
+  "value": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+}
+```
+    
+Em seguida, adicione a seguinte configuração de autenticação do servidor no settings.xml do Maven:
+    
+```
+<server>
+    <id>baeldungadr</id>
+    <username>baeldungadr</username>
+    <password>xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</password>
+</server>
+```
+    
+### 5.2 Configuração do plugin Maven
+Vamos adicionar a seguinte configuração de plug-in Maven ao pom.xml:
+
+```
+<properties>
+    <!-- ... -->
+    <azure.containerRegistry>baeldungadr</azure.containerRegistry>
+    <docker.image.prefix>${azure.containerRegistry}.azurecr.io</docker.image.prefix>
+</properties>
+
+<build>
+    <plugins>
+        <plugin>
+            <groupId>com.spotify</groupId>
+            <artifactId>docker-maven-plugin</artifactId>
+            <version>1.0.0</version>
+            <configuration>
+                <imageName>${docker.image.prefix}/${project.artifactId}</imageName>
+                <registryUrl>https://${docker.image.prefix}</registryUrl>
+                <serverId>${azure.containerRegistry}</serverId>
+                <dockerDirectory>docker</dockerDirectory>
+                <resources>
+                    <resource>
+                        <targetPath>/</targetPath>
+                        <directory>${project.build.directory}</directory>
+                        <include>${project.build.finalName}.jar</include>
+                    </resource>
+                </resources>
+            </configuration>
+        </plugin>
+        <!-- ... -->
+    </plugins>
+</build>
+```
+    
+Na configuração acima, especificamos o nome da imagem do docker, a URL do registro e algumas propriedades semelhantes às da implantação do FTP.
+
+Observe que o plug-in usará valores em <dockerDirectory> para localizar o Dockerfile. Colocamos o Dockerfile no diretório docker e seu conteúdo é:
+    
+```
+FROM frolvlad/alpine-oraclejdk8:slim
+VOLUME /tmp
+ADD azure-0.1.jar app.jar
+RUN sh -c 'touch /app.jar'
+EXPOSE 8080
+ENTRYPOINT [ "sh", "-c", "java -Djava.security.egd=file:/dev/./urandom -jar /app.jar" ]
+```
+    
+### 5.3. Execute o Spring Boot App em uma instância do Docker
+Agora podemos construir uma imagem Docker e enviá-la para o registro do Azure:
+    
+```
+> mvn docker:build -DpushImage
+...
+[INFO] Building image isaccanedoadr.azurecr.io/azure-0.1
+...
+Successfully built aaaaaaaaaaaa
+Successfully tagged isaccanedoadr.azurecr.io/azure-0.1:latest
+[INFO] Built isaccanedoadr.azurecr.io/azure-0.1
+[INFO] Pushing isaccanedoadr.azurecr.io/azure-0.1
+The push refers to repository [isaccanedoadr.azurecr.io/azure-0.1]
+...
+latest: digest: sha256:0f0f... size: 1375
+```
+ 
+Depois que o upload for concluído, verificamos o registro do isaccanedoadr. 
+ 
+Agora estamos prontos para executar uma instância da imagem:
+ 
+Depois que a instância é inicializada, podemos acessar os serviços fornecidos por nosso aplicativo por meio de seu endereço IP público:
+ 
+```
+> curl http://a.x.y.z:8080/hello
+hello azure!
+```
+
+### 5.4 Implantação de Docker Container
+Suponha que tenhamos um registro de contêiner, não importa se ele é do Azure, Docker Hub ou nosso registro privado.
+
+Com a ajuda da seguinte configuração do azure-webapp-maven-plugin, também podemos implantar nosso aplicativo da web Spring Boot nos contêineres:
+
+```
+<configuration>
+    <containerSettings>
+        <imageName>${docker.image.prefix}/${project.artifactId}</imageName>
+        <registryUrl>https://${docker.image.prefix}</registryUrl>
+        <serverId>${azure.containerRegistry}</serverId>
+    </containerSettings>
+    <!-- ... -->
+</configuration>
+```
+
+Depois de executar mvn azure-webapp: deploy, o plug-in ajudará a implantar nosso arquivo de aplicativo da web em uma instância da imagem especificada.
+
+Em seguida, podemos acessar os serviços da web por meio do endereço IP da instância ou URL do Serviço de Aplicativo do Azure.
+
+# 6. Conclusão
+Neste artigo, apresentamos como implantar um aplicativo Spring Boot no Azure, como um WAR implantável ou um JAR executável em um contêiner. Embora tenhamos abordado a maioria dos recursos do azure-webapp-maven-plugin, existem alguns recursos avançados ainda a serem explorados...
+
+    
+ 
+    
+    
