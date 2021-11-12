@@ -286,7 +286,7 @@ Vamos testar nossos novos endpoints:
 registered
 
 > curl https://isaccanedo-webapp.azurewebsites.net/user
-[{"id":1,"name":"baeldung"}]
+[{"id":1,"name":"isaccanedo"}]
 ```
     
 A resposta do servidor diz tudo. Funciona!
