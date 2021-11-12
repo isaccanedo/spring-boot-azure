@@ -243,7 +243,7 @@ spring.datasource.password=
     </authentication>
     <javaVersion>1.8</javaVersion>
     <resourceGroup>isaccanedo-group</resourceGroup>
-    <appName>baeldung-webapp</appName>
+    <appName>isaccanedo-webapp</appName>
     <appServicePlanName>isaccanedo-plan</appServicePlanName>
     <appSettings>
         <property>
@@ -282,7 +282,7 @@ Podemos ver no log que a implantação foi concluída.
 Vamos testar nossos novos endpoints:
 
 ```
-> curl -d "" -X POST https://isaccanedo-webapp.azurewebsites.net/user\?name\=baeldung
+> curl -d "" -X POST https://isaccanedo-webapp.azurewebsites.net/user\?name\=isaccanedo
 registered
 
 > curl https://isaccanedo-webapp.azurewebsites.net/user
