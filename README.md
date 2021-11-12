@@ -163,3 +163,48 @@ Para implantar via FTP, podemos usar a configuração:
     </resources>
 </configuration>
 ```
+    
+Na configuração acima, fazemos com que o plug-in localize o arquivo WAR no diretório $ {project.basedir} 
+/target e o implemente no diretório webapps do contêiner Tomcat.
+
+Digamos que nosso artefato final seja denominado azure-0.1.war, veremos uma saída como a seguinte assim que iniciarmos a implantação:    
+    
+```
+> mvn clean package azure-webapp:deploy
+...
+[INFO] Start deploying to Web App spring-isaccanedo...
+[INFO] Authenticate with ServerId: azure-auth
+[INFO] [Correlation ID: cccccccc-cccc-cccc-cccc-cccccccccccc] \
+Instance discovery was successful
+[INFO] Target Web App doesn't exist. Creating a new one...
+[INFO] Creating App Service Plan 'ServicePlanxxxxxxxx-xxxx-xxxx'...
+[INFO] Successfully created App Service Plan.
+[INFO] Successfully created Web App.
+...
+[INFO] Finished uploading directory: \
+/xxx/.../target/azure-webapps/spring-isaccanedo --> /site/wwwroot
+[INFO] Successfully uploaded files to FTP server: \
+xxxx-xxxx-xxx-xxx.ftp.azurewebsites.windows.net
+[INFO] Successfully deployed Web App at \
+https://spring-isaccanedo.azurewebsites.net 
+```
+    
+Observe que aqui não implantamos nosso aplicativo como o aplicativo da Web padrão para Tomcat, portanto, só podemos acessá-lo por meio de ‘https://spring-baeldung.azurewebsites.net/azure-0.1/hello '. O servidor irá responder 'hello azure!' como esperado.
+
+# 4. Implantar com configurações de aplicativo personalizadas
+Na maioria das vezes, nosso aplicativo Spring Boot requer acesso a dados para fornecer serviços. O Azure agora oferece suporte a bancos de dados como SQL Server, MySQL e PostgreSQL.
+
+Para fins de simplicidade, usaremos seu MySQL no aplicativo como nossa fonte de dados, pois sua configuração é bastante semelhante a outros serviços de banco de dados do Azure.
+
+### 4.1. Habilitar MySQL no aplicativo no Azure
+Como não há uma linha única para criar um aplicativo da web com MySQL no aplicativo habilitado, temos que primeiro criar o aplicativo da web usando a CLI:
+    
+```
+az group create --location japanwest --name isaccanedo-group
+az appservice plan create --name isaccanedo-plan --resource-group isaccanedo-group --sku B1
+az webapp create --name isaccanedo-webapp --resource-group isaccanedo-group \
+  --plan isaccanedo-plan --runtime java|1.8|Tomcat|8.5
+```
+Em seguida, habilite o MySQL no aplicativo no portal:
+
+    
