@@ -101,7 +101,7 @@ Não vamos esquecer a autenticação do Azure:
         <serverId>azure-auth</serverId>
     </authentication>
     <appName>spring-azure</appName>
-    <resourceGroup>baeldung</resourceGroup>
+    <resourceGroup>isaccanedo</resourceGroup>
     <!-- ... -->
 </configuration>
 ```
@@ -147,8 +147,8 @@ Para implantar via FTP, podemos usar a configuração:
     <authentication>
         <serverId>azure-auth</serverId>
     </authentication>
-    <appName>spring-baeldung</appName>
-    <resourceGroup>baeldung</resourceGroup>
+    <appName>spring-isaccanedo</appName>
+    <resourceGroup>isaccanedo</resourceGroup>
     <javaVersion>1.8</javaVersion>
 
     <deploymentType>ftp</deploymentType>
@@ -189,7 +189,7 @@ xxxx-xxxx-xxx-xxx.ftp.azurewebsites.windows.net
 https://spring-isaccanedo.azurewebsites.net 
 ```
     
-Observe que aqui não implantamos nosso aplicativo como o aplicativo da Web padrão para Tomcat, portanto, só podemos acessá-lo por meio de ‘https://spring-baeldung.azurewebsites.net/azure-0.1/hello '. O servidor irá responder 'hello azure!' como esperado.
+Observe que aqui não implantamos nosso aplicativo como o aplicativo da Web padrão para Tomcat, portanto, só podemos acessá-lo por meio de ‘https://spring-isaccanedo.azurewebsites.net/azure-0.1/hello '. O servidor irá responder 'hello azure!' como esperado.
 
 # 4. Implantar com configurações de aplicativo personalizadas
 Na maioria das vezes, nosso aplicativo Spring Boot requer acesso a dados para fornecer serviços. O Azure agora oferece suporte a bancos de dados como SQL Server, MySQL e PostgreSQL.
@@ -242,9 +242,9 @@ spring.datasource.password=
         <serverId>azure-auth</serverId>
     </authentication>
     <javaVersion>1.8</javaVersion>
-    <resourceGroup>baeldung-group</resourceGroup>
+    <resourceGroup>isaccanedo-group</resourceGroup>
     <appName>baeldung-webapp</appName>
-    <appServicePlanName>bealdung-plan</appServicePlanName>
+    <appServicePlanName>isaccanedo-plan</appServicePlanName>
     <appSettings>
         <property>
             <name>spring.datasource.url</name>
@@ -317,14 +317,14 @@ Primeiro, precisamos de um Container Registry no Azure para carregar nossa image
 Então, vamos criar um:
     
 ```
-az acr create --admin-enabled --resource-group baeldung-group \
-  --location japanwest --name baeldungadr --sku Basic
+az acr create --admin-enabled --resource-group isaccanedo-group \
+  --location japanwest --name isaccanedoadr --sku Basic
 ```
     
 Também precisaremos das informações de autenticação do Container Registry, e isso pode ser consultado usando:
     
 ```
-> az acr credential show --name baeldungadr --query passwords[0]
+> az acr credential show --name isaccanedoadr --query passwords[0]
 {
   "additionalProperties": {},
   "name": "password",
@@ -336,8 +336,8 @@ Em seguida, adicione a seguinte configuração de autenticação do servidor no 
     
 ```
 <server>
-    <id>baeldungadr</id>
-    <username>baeldungadr</username>
+    <id>isaccanedoadr</id>
+    <username>isaccanedoadr</username>
     <password>xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</password>
 </server>
 ```
@@ -348,7 +348,7 @@ Vamos adicionar a seguinte configuração de plug-in Maven ao pom.xml:
 ```
 <properties>
     <!-- ... -->
-    <azure.containerRegistry>baeldungadr</azure.containerRegistry>
+    <azure.containerRegistry>isaccanedoadr</azure.containerRegistry>
     <docker.image.prefix>${azure.containerRegistry}.azurecr.io</docker.image.prefix>
 </properties>
 
