@@ -207,4 +207,4 @@ az webapp create --name isaccanedo-webapp --resource-group isaccanedo-group \
 ```
 Em seguida, habilite o MySQL no aplicativo no portal:
 
-    
+<img src="azure.jpg">   
