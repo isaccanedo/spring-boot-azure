@@ -208,3 +208,93 @@ az webapp create --name isaccanedo-webapp --resource-group isaccanedo-group \
 Em seguida, habilite o MySQL no aplicativo no portal:
 
 <img src="azure.jpg">   
+    
+Depois que o MySQL no aplicativo for habilitado, podemos encontrar o banco de dados padrão, a URL da fonte de dados e as informações de conta padrão em um arquivo denominado MYSQLCONNSTR_xxx.txt no diretório /home/data/mysql do sistema de arquivos.
+
+### 4.2. Aplicativo Spring Boot usando o Azure no aplicativo MySQL
+Aqui, para necessidades de demonstração, criamos uma entidade de usuário e dois endpoints usados para registrar e listar usuários:
+    
+```
+@PostMapping("/user")
+public String register(@RequestParam String name) {
+    userRepository.save(userNamed(name));
+    return "registered";
+}
+
+@GetMapping("/user")
+public Iterable<User> userlist() {
+    return userRepository.findAll();
+}  
+```
+
+Vamos usar um banco de dados H2 em nosso ambiente local e alterná-lo para MySQL no Azure. Geralmente, configuramos as propriedades da fonte de dados no arquivo application.properties:
+    
+```
+spring.datasource.url=jdbc:h2:file:~/test
+spring.datasource.username=sa
+spring.datasource.password= 
+```
+    
+ Enquanto para a implantação do Azure, precisamos configurar azure-webapp-maven-plugin em <<appSettings>>:
+ ```
+ <configuration>
+    <authentication>
+        <serverId>azure-auth</serverId>
+    </authentication>
+    <javaVersion>1.8</javaVersion>
+    <resourceGroup>baeldung-group</resourceGroup>
+    <appName>baeldung-webapp</appName>
+    <appServicePlanName>bealdung-plan</appServicePlanName>
+    <appSettings>
+        <property>
+            <name>spring.datasource.url</name>
+            <value>jdbc:mysql://127.0.0.1:55738/localdb</value>
+        </property>
+        <property>
+            <name>spring.datasource.username</name>
+            <value>uuuuuu</value>
+        </property>
+        <property>
+            <name>spring.datasource.password</name>
+            <value>pppppp</value>
+        </property>
+    </appSettings>
+</configuration>
+```
+    
+Agora podemos começar a implantar:
+```
+> mvn clean package azure-webapp:deploy
+...
+[INFO] Start deploying to Web App custom-webapp...
+[INFO] Authenticate with ServerId: azure-auth
+[INFO] [Correlation ID: cccccccc-cccc-cccc-cccc-cccccccccccc] \
+Instance discovery was successful
+[INFO] Updating target Web App...
+[INFO] Successfully updated Web App.
+[INFO] Starting to deploy the war file...
+[INFO] Successfully deployed Web App at \
+https://isaccanedo-webapp.azurewebsites.net
+```
+    
+Podemos ver no log que a implantação foi concluída.
+
+Vamos testar nossos novos endpoints:
+
+```
+> curl -d "" -X POST https://isaccanedo-webapp.azurewebsites.net/user\?name\=baeldung
+registered
+
+> curl https://isaccanedo-webapp.azurewebsites.net/user
+[{"id":1,"name":"baeldung"}]
+```
+    
+A resposta do servidor diz tudo. Funciona!
+
+# 5. Implante um aplicativo Spring Boot em contêiner no Azure
+Nas seções anteriores, mostramos como implantar aplicativos em contêineres de servlet (Tomcat, neste caso). Que tal implantar como um jar executável autônomo?
+
+Por enquanto, podemos precisar colocar em contêiner nosso aplicativo Spring Boot. Especificamente, podemos encaixá-lo e carregar a imagem no Azure.
+
+Já temos um artigo sobre como encaixar um aplicativo Spring Boot, mas estamos prestes a usar outro plugin maven: docker-maven-plugin, para automatizar a dockerização para nós:
+ 
